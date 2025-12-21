@@ -1,0 +1,6 @@
+{"username":"Dibika","password":"3f0eea3183c6ce0ab4e35f1a5d7f41c688ce8f0f7ddc702192fbc2a486bce520","role":"admin"}
+
+{"username":"sfl_gtm","password":"724b3e0f5e9621ac7dbc3c6c4484ed459aeabb49f826e13e7a29b4ba9f531c56","role":"user"}
+{"username":"rujal","password":"8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92","role":"user"}
+{"username":"Nalini","password":"7828ad378ccb62058cd6efcd8d91fba02eb5bb41f80303c8299a6667ca855fcc","role":"user"}
+{"username":"deadeye","password":"236615300af4ecca62d177a8dac0dba0e0b4219786d0ee1ed875320d51919101","role":"user"}

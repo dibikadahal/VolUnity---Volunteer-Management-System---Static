@@ -1,0 +1,6 @@
+{"username":"Dibika","hashedPassword":"0afb00138d8e73348ec1fe41fd3d3a8fcbd90156b263bfa5791ba0e095f42cfc","role":"admin"}
+{"username":"Safal","hashedPassword":"27a534a25cf745b6c985eb782079a6fe8641b00003dada14f392a2d01b9c790a","role":"user"}
+{"username":"Nalini","hashedPassword":"0e238ae88aef5a81ba9d297b5df67e74af15d168e5b765db22227c91b8672285","role":"user"}
+{"username":"Samriddhi","hashedPassword":"1a2128575791041f71518269a921831482461e41fdacfc58ae18c84064d4b596","role":"user"}
+{"username":"Meesha","hashedPassword":"dd1ef0fa319d165965c33f32d41fa7ab52dec6e232a8a3fe9e2cf9ffe2c4aa76","role":"user"}
+{"username":"Safli","hashedPassword":"d123a55a7ca38fe7ce8514fff60c1e9dba5708e4689f6be4b1662a8b5092b501","role":"volunteer_pending"}
