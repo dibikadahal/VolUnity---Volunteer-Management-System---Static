@@ -6,6 +6,7 @@ package Model;
 
 import java.util.ArrayList;
 import java.util.List;
+import Model.Volunteer;
 
 /**
  *Centralized in-memory data storage
@@ -16,6 +17,9 @@ public class DataManager {
     private static final ArrayList<User> users = new ArrayList<>();
     private static final ArrayList<Volunteer> approvedVolunteers = new ArrayList<>();
     private static final ArrayList<Volunteer> declinedVolunteers = new ArrayList<>();
+    // For pending volunteers queue
+    private static final ArrayList<Volunteer> pendingVolunteers = new ArrayList<>();
+
     
     //manual queue for pending volunteers
     private static final int MAX_QUEUE_SIZE = 100;
@@ -23,6 +27,9 @@ public class DataManager {
     private static int front = 0;
     private static int rear = -1;
     private static int queueSize = 0;
+    
+    //for voluntter ID counter - volunteer panel
+    private static int volunteerIdCounter = 1;
     
     //============INITIALIZATION=================
     public static void initialize(){
@@ -216,6 +223,9 @@ public class DataManager {
         //remove from queue
         dequeue();
         
+        //assign unique Volunteer ID
+        volunteer.setVolunteerId(volunteerIdCounter++);
+        
         //add to approved list
         approvedVolunteers.add(volunteer);
         
@@ -379,6 +389,47 @@ public class DataManager {
         return null;
     }
     
+    
+    //to remove the pending volunteers
+    public static void removePendingVolunteer(Volunteer volunteer) {
+        pendingVolunteers.remove(volunteer);
+    }
+
+    
+    
+    //method for id generation
+    public static int generateVolunteerId() {
+        return volunteerIdCounter++;
+    }
+    
+    //method to store approved volunteers
+    public static void addApprovedVolunteer(Volunteer volunteer){
+        approvedVolunteers.add(volunteer);
+    }
+    
+    //access approved volunteers
+    public static ArrayList<Volunteer> getApprovedVolunteers(){
+        return approvedVolunteers;
+    }
+    
+    //this method processes approval
+    public static boolean approveVolunteer(Volunteer volunteer){
+        //1. generate id
+        volunteer.setVolunteerId(generateVolunteerId());
+        
+        //2. update setStatus
+        volunteer.setStatus("Approved");
+        
+        //3. Add to approved list
+        addApprovedVolunteer(volunteer);
+        
+        //4. remove frompending queue
+        pendingVolunteers.remove(volunteer);
+        
+        return true;
+        
+    }
+
     
     //===========STATISTICS==================
     public static int getTotalVolunteers(){

@@ -19,6 +19,8 @@ import javax.swing.DefaultCellEditor;
 import java.awt.Font;
 import javax.swing.Timer;
 import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 
 
@@ -52,6 +54,10 @@ public class AdminDashboard extends javax.swing.JFrame {
         setupPendingVolunteerTable();
         //crudController = new VolunteerCRUDController(this);
         
+        
+        //calling date time and Welcome message
+        updateWelcomeMessage(user.getUsername(), user.getRole());
+        startDateTimeDisplay();
         
         
         //make JFrame full screen / maximized
@@ -379,9 +385,9 @@ public class AdminDashboard extends javax.swing.JFrame {
                 
                 // Handle button actions
                 if ("Accept".equals(label)) {
-                    handleAccept(selectedVolunteer, currentRow);
+                    handleAccept(selectedVolunteer);
                 } else if ("Decline".equals(label)) {
-                    handleDecline(selectedVolunteer, currentRow);
+                    handleDecline(selectedVolunteer);
                 } else if ("View".equals(label)) {
                     handleView(selectedVolunteer);
                 }
@@ -399,19 +405,21 @@ public class AdminDashboard extends javax.swing.JFrame {
     
     
     //=====HANDLE ACCEPT BUTTON======
-    private void handleAccept(Volunteer volunteer, int row) {
-        if (controller.approveVolunteer(volunteer, row)) {
-            loadPendingVolunteers();  // Refresh table
+    private void handleAccept(Volunteer volunteer) {
+        if (controller.approveVolunteer(volunteer)) {
+            refreshPendingVolunteerTable();
+            refreshApprovedVolunteerTable();
         }
     }
     
     
     //=========HANDLE DECLINE BUTTON=========
-    private void handleDecline(Volunteer volunteer, int row) {
-        if (controller.declineVolunteer(volunteer, row)) {
-            loadPendingVolunteers();  // Refresh table
+private void handleDecline(Volunteer volunteer) {
+        if (controller.declineVolunteer(volunteer)) {
+            refreshPendingVolunteerTable();
         }
     }
+
     
     //==========HANDLE VIEW BUTTON===============
     private void handleView(Volunteer volunteer){
@@ -465,13 +473,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         });
     }
     
- 
    
-  
-
-    
-   
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -523,7 +525,6 @@ public class AdminDashboard extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        getContentPane().setLayout(null);
 
         Parent.setBackground(new java.awt.Color(255, 204, 204));
         Parent.setLayout(new java.awt.CardLayout());
@@ -557,13 +558,23 @@ public class AdminDashboard extends javax.swing.JFrame {
 
         calendarButton.setFont(new java.awt.Font("Segoe UI Emoji", 0, 18)); // NOI18N
         calendarButton.setText("🗓️ Calendar");
+        calendarButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                calendarButtonActionPerformed(evt);
+            }
+        });
         navigator.add(calendarButton);
         calendarButton.setBounds(20, 640, 210, 50);
 
         eventButton.setFont(new java.awt.Font("Segoe UI Emoji", 0, 18)); // NOI18N
         eventButton.setText("📋 Event");
+        eventButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                eventButtonActionPerformed(evt);
+            }
+        });
         navigator.add(eventButton);
-        eventButton.setBounds(20, 510, 210, 49);
+        eventButton.setBounds(20, 500, 210, 49);
 
         jLabel9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/View/VolUnity_logo_new.png"))); // NOI18N
         jLabel9.setText("jLabel9");
@@ -679,28 +690,7 @@ public class AdminDashboard extends javax.swing.JFrame {
 
         volunteerTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
+
             },
             new String [] {
                 "Volunteer ID", "Name", "Contact", "Email", "Status", "Options"
@@ -751,7 +741,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         ));
         jScrollPane2.setViewportView(jTable1);
 
-        EventPanel.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 230, 1400, 720));
+        EventPanel.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 230, 1330, 720));
 
         addEventsButton.setFont(new java.awt.Font("Sitka Text", 0, 18)); // NOI18N
         addEventsButton.setText("+ Add Events");
@@ -760,16 +750,16 @@ public class AdminDashboard extends javax.swing.JFrame {
                 addEventsButtonActionPerformed(evt);
             }
         });
-        EventPanel.add(addEventsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 160, -1, -1));
+        EventPanel.add(addEventsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 160, -1, -1));
 
         sortEventsJCombo.setFont(new java.awt.Font("Sitka Text", 0, 18)); // NOI18N
         sortEventsJCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Sort By", "Name", "Date" }));
-        EventPanel.add(sortEventsJCombo, new org.netbeans.lib.awtextra.AbsoluteConstraints(990, 160, -1, -1));
+        EventPanel.add(sortEventsJCombo, new org.netbeans.lib.awtextra.AbsoluteConstraints(980, 160, -1, -1));
 
         jLabel3.setFont(new java.awt.Font("Sitka Text", 0, 18)); // NOI18N
         jLabel3.setText("Search: ");
-        EventPanel.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(1150, 163, 80, 30));
-        EventPanel.add(eventsSearchBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(1230, 160, 190, 30));
+        EventPanel.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(1120, 160, 80, 30));
+        EventPanel.add(eventsSearchBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(1200, 160, 190, 30));
 
         Parent1.add(EventPanel, "card4");
 
@@ -799,14 +789,23 @@ public class AdminDashboard extends javax.swing.JFrame {
 
         Parent.add(Dashboard, "card3");
 
-        getContentPane().add(Parent);
-        Parent.setBounds(0, 0, 950, 540);
+        getContentPane().add(Parent, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    
+    private void switchPanel(String cardName) {
+    CardLayout cl = (CardLayout) Parent1.getLayout();
+    cl.show(Parent1, cardName);
+
+    Parent1.revalidate();
+    Parent1.repaint();
+}
+
     private void adminDashboardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_adminDashboardButtonActionPerformed
-        // TODO add your handling code here:
+        CardLayout cl = (CardLayout) Parent1.getLayout();
+        cl.show(Parent1, "card2");
     }//GEN-LAST:event_adminDashboardButtonActionPerformed
 
     private void volunteerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_volunteerButtonActionPerformed
@@ -823,8 +822,17 @@ public class AdminDashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_sortByComboBoxActionPerformed
 
     private void addEventsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addEventsButtonActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_addEventsButtonActionPerformed
+
+    private void eventButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eventButtonActionPerformed
+        switchPanel("card4"); // EventPanel
+    }//GEN-LAST:event_eventButtonActionPerformed
+
+    private void calendarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_calendarButtonActionPerformed
+    switchPanel("card5"); // CalendarPanel
+    }//GEN-LAST:event_calendarButtonActionPerformed
+    
 
     
 
@@ -923,6 +931,33 @@ public class AdminDashboard extends javax.swing.JFrame {
             dateTimeTimer.stop();
         }
     }
+    
+    
+    //method to add approved volunteers to the volunteer panel
+    public void addApprovedVolunteerToTable(Volunteer volunteer){
+        DefaultTableModel model = (DefaultTableModel) volunteerTable.getModel();
+        //Object volunteerId = volunteer.getVolunteerId();
+        
+        Object[] row = {
+            volunteer.getVolunteerId(),
+            volunteer.getFullName(),
+            volunteer.getContactNumber(),
+            volunteer.getEmail(),
+            "Approved",
+            "View / Delete" // placeholder for options
+        };
+        model.addRow(row);
+    }
+    
+    // Refresh pending volunteers table
+    public void refreshPendingVolunteerTable() {
+        loadPendingVolunteers();   // you already have this method
+    }
+
+    // Refresh approved volunteers table (Volunteer Record panel)
+    public void refreshApprovedVolunteerTable() {
+    }
+
 
      
 

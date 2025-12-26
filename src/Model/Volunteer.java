@@ -29,6 +29,10 @@ public class Volunteer {
     //registration tracking
     private String registrationDateTime;
     
+    //to store in the volunteerRecored pane;
+    private int volunteerId;
+    private String status;
+    
 
     //constructor with all fields (except auto-generated ones)
     public Volunteer(String fullName, String dateOfBirth, String gender, String contactNumber, String email, 
@@ -157,4 +161,21 @@ public class Volunteer {
     public void setRegistrationDateTime(String registrationDateTime){
         this.registrationDateTime = registrationDateTime;
     }
+    
+    //volunteer id (automatic to be generated)
+    public int getVolunteerId(){
+        return volunteerId;
+    }
+    public void setVolunteerId(int volunteerId){
+        this.volunteerId = volunteerId;
+    }
+    
+    //to get the status of the volunteer
+   public String getStatus(){
+       return status;
+   }
+   public void setStatus(String status){
+       this.status = status;
+   }
+    
 }

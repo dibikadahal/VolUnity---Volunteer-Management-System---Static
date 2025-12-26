@@ -51,7 +51,7 @@ public class VolunteerCRUDController {
         //Add directly (bypass queue for admin created volunteers)
         if(DataManager.addVolunteerDirect(volunteer)){
             JOptionPane.showMessageDialog(view, "Volunteer added successfully!\n\n" +
-                    "Nmae: " + fullName + "\n" +
+                    "Name: " + fullName + "\n" +
                     "Username: " + username,
                     "Success", JOptionPane.INFORMATION_MESSAGE);
             return true;
