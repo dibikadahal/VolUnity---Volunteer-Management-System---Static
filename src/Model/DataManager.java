@@ -51,12 +51,32 @@ public class DataManager {
         );
         
         Volunteer demo2 = new Volunteer(
-                "Safal Gautam", "2005/10/23", "Male", "9867890956", "sflgtm@gmail.com", "Bachelors", "Social Service",
+                "Safal Gautam", "2005/10/09", "Male", "9867890956", "sflgtm@gmail.com", "Bachelors", "Social Service",
                 "Knowphile Social", "sfl_gtm", PasswordUtil.hash("safalgautam"), "user"
+        );
+        
+                Volunteer demo3 = new Volunteer(
+                "Samriddhi Mainali", "2005/10/29", "Fe,ale", "9863020099", "samu291@gmail.com", "Bachelors", "Creativity, Arts, Social skills",
+                "Head Girl", "samu291", PasswordUtil.hash("samriddhi123"), "user"
+        );
+                
+                 Volunteer demo4 = new Volunteer(
+                "Shaira Gurung", "2006/12/25", "Female", "9863012234", "shairagrg@gmail.com", "Computing with AI", "Programming and designing",
+                "IT Company", "shaira25", PasswordUtil.hash("shaira25"), "user"
+        );
+                 
+                 Volunteer demo5 = new Volunteer(
+                "Aarogya Thapa", "2000/12/05", "Female", "9876543212", "aru@example.com",
+                "Bachelor's in Education", "Teaching, Communication, Leadership",
+                "5 years teaching experience", "aarogya_t",
+                PasswordUtil.hash("aarogya"), "user"
         );
         
         enqueue(demo1);
         enqueue(demo2);
+        enqueue(demo3);
+        enqueue(demo4);
+        enqueue(demo5);
         
         //add demo approved volunteer fro CRUD testing
         Volunteer approved1 = new Volunteer(
