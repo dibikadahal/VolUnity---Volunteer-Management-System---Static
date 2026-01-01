@@ -18,7 +18,7 @@ public class DataManager {
     private static final ArrayList<Volunteer> approvedVolunteers = new ArrayList<>();
     private static final ArrayList<Volunteer> declinedVolunteers = new ArrayList<>();
     // For pending volunteers queue
-    private static final ArrayList<Volunteer> pendingVolunteers = new ArrayList<>();
+    //private static final ArrayList<Volunteer> pendingVolunteers = new ArrayList<>();
 
     
     //manual queue for pending volunteers
@@ -78,6 +78,7 @@ public class DataManager {
         enqueue(demo4);
         enqueue(demo5);
         
+        /*
         //add demo approved volunteer fro CRUD testing
         Volunteer approved1 = new Volunteer(
                 "Aarogya Thapa", "2000/12/05", "Female", "9876543212", "aru@example.com",
@@ -90,6 +91,7 @@ public class DataManager {
         users.add(aarogyaUser);
         
         System.out.println("Demo data loaded");
+        */
     }
     
     
@@ -107,12 +109,12 @@ public class DataManager {
     //ENQUEUE - add volunteer to the rear of the queue
     public static boolean enqueue(Volunteer volunteer){
         if(isQueueFull()){
+            return false;
         }
         
         rear = (rear +1) % MAX_QUEUE_SIZE;
         pendingQueue[rear] = volunteer;
-        queueSize++;
-        
+        queueSize++;     
         return true;
     }
     
@@ -126,8 +128,7 @@ public class DataManager {
         Volunteer volunteer = pendingQueue[front];
         pendingQueue[front] = null; //clear reference
         front = (front + 1) % MAX_QUEUE_SIZE;
-        queueSize--;
-        
+        queueSize--;      
         return volunteer;                
     }
     
@@ -156,11 +157,6 @@ public class DataManager {
     //get all pending volunteers at List (for display)
     public static List<Volunteer> getPendingVolunteers(){
         List<Volunteer> list = new ArrayList<>();
-        
-        if(isQueueEmpty()){
-            return list;
-        }
-        
         //transverse queue from front to rear
         int index = front;
         for (int i = 0; i < queueSize; i++){
@@ -227,11 +223,7 @@ public class DataManager {
     //=======APPROVE / DECLINE===============
     
     //approve volunteers first
-    public static boolean approveVolunteer(String username){
-        if (isQueueEmpty()){
-            return false;
-        }
-        
+    public static boolean approveVolunteer(String username){        
         //get first volunteer
         Volunteer volunteer = front();
         
@@ -241,27 +233,12 @@ public class DataManager {
     }
         
         //remove from queue
-        dequeue();
-        
-        //assign unique Volunteer ID
-        volunteer.setVolunteerId(volunteerIdCounter++);
-        
-        //add to approved list
-        approvedVolunteers.add(volunteer);
-        
-        //add user credentials for login
-        User user = new User(volunteer.getUsername(), volunteer.getPassword(), "user");
-        users.add(user);
-        
-        return true;                
+        dequeue();        
+        return approveVolunteer(volunteer);                
     }
     
     //Decline first volunteer in queue(FIFO)
-    public static boolean declineVolunteer(String username){
-        if (isQueueEmpty()){
-            return false;
-        }
-        
+    public static boolean declineVolunteer(String username){      
         // Get first volunteer
         Volunteer volunteer = front();
 
@@ -275,8 +252,7 @@ public class DataManager {
 
         // Move to declined archive
         declinedVolunteers.add(volunteer);
-
-        return true;
+       return true;
     }
 
     
@@ -411,16 +387,19 @@ public class DataManager {
     
     
     //to remove the pending volunteers
+    /*
     public static void removePendingVolunteer(Volunteer volunteer) {
         pendingVolunteers.remove(volunteer);
     }
 
-    
-    
+   */ 
+   
+    /*
     //method for id generation
     public static int generateVolunteerId() {
         return volunteerIdCounter++;
     }
+*/
     
     //method to store approved volunteers
     public static void addApprovedVolunteer(Volunteer volunteer){
@@ -435,16 +414,19 @@ public class DataManager {
     //this method processes approval
     public static boolean approveVolunteer(Volunteer volunteer){
         //1. generate id
-        volunteer.setVolunteerId(generateVolunteerId());
+        volunteer.setVolunteerId(volunteerIdCounter++);
         
         //2. update setStatus
         volunteer.setStatus("Approved");
+        approvedVolunteers.add(volunteer);
         
-        //3. Add to approved list
-        addApprovedVolunteer(volunteer);
-        
-        //4. remove frompending queue
-        pendingVolunteers.remove(volunteer);
+//create login credentials
+        User user = new User(
+        volunteer.getUsername(),
+                volunteer.getPassword(),
+                        "user"
+        );
+        users.add(user);
         
         return true;
         
