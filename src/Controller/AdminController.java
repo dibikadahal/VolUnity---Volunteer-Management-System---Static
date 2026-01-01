@@ -21,9 +21,9 @@ public class AdminController {
  
  //======APPROVE VOLUNTEERS==========
 public boolean approveVolunteer(Volunteer volunteer) {
-        Volunteer first = DataManager.front();
+        Volunteer firstInQueue = DataManager.front();
 
-        if (first == null) {
+        if (firstInQueue == null) {
             JOptionPane.showMessageDialog(view,
                     "No pending volunteers in queue.",
                     "Queue Empty", JOptionPane.INFORMATION_MESSAGE);
@@ -31,33 +31,33 @@ public boolean approveVolunteer(Volunteer volunteer) {
         }
 
         // enforce FIFO
-        if (!first.getUsername().equals(volunteer.getUsername())) {
+        if (!firstInQueue.getUsername().equals(volunteer.getUsername())) {
             JOptionPane.showMessageDialog(view,
                     "Please process volunteers in order!\n\n"
-                    + "First in queue: " + first.getFullName(),
+                    + "First in queue: " + firstInQueue.getFullName(),
                     "Queue Order Required", JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
         int confirm = JOptionPane.showConfirmDialog(view,
-                "Accept volunteer: " + first.getFullName() + "?\n\n"
-                + "Registration Date: " + first.getRegistrationDateTime(),
+                "Accept volunteer: " + firstInQueue.getFullName() + "?\n\n"
+                + "Registration Date: " + firstInQueue.getRegistrationDateTime(),
                 "Confirm Accept", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            boolean approved = DataManager.approveVolunteer(first.getUsername());
+            boolean approved = DataManager.approveVolunteer(firstInQueue.getUsername());
             if (approved) {
                 JOptionPane.showMessageDialog(view,
-                        "✓ " + first.getFullName() + " APPROVED!",
+                        "✓ " + firstInQueue.getFullName() + " APPROVED!",
                         "Volunteer Approved", JOptionPane.INFORMATION_MESSAGE);
                 
                 //add to the approved volunteer table
-                ((AdminDashboard) view).addApprovedVolunteerToTable(volunteer);
+                if (view instanceof AdminDashboard){
+                    ((AdminDashboard) view).addApprovedVolunteerToTable(firstInQueue);
+                }
                 return true;
             }
-            return approved;
         }
-
         return false;
     }
 
@@ -66,10 +66,9 @@ public boolean approveVolunteer(Volunteer volunteer) {
  //================DECLINE VOLUNTEERS================
 // ====== DECLINE VOLUNTEER ==========
 public boolean declineVolunteer(Volunteer volunteer) {
+        Volunteer firstInQueue = DataManager.front();
 
-        Volunteer first = DataManager.front();
-
-        if (first == null) {
+        if (firstInQueue == null) {
             JOptionPane.showMessageDialog(view,
                     "No pending volunteers in queue.",
                     "Queue Empty", JOptionPane.INFORMATION_MESSAGE);
@@ -77,16 +76,16 @@ public boolean declineVolunteer(Volunteer volunteer) {
         }
 
         // Enforce FIFO
-        if (!first.getUsername().equals(volunteer.getUsername())) {
+        if (!firstInQueue.getUsername().equals(volunteer.getUsername())) {
             JOptionPane.showMessageDialog(view,
                     "Please process volunteers in order!\n\n"
-                    + "First in queue: " + first.getFullName(),
+                    + "First in queue: " + firstInQueue.getFullName(),
                     "Queue Order Required", JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
         String reason = JOptionPane.showInputDialog(view,
-                "Decline volunteer: " + first.getFullName() + "\n\n"
+                "Decline volunteer: " + firstInQueue.getFullName() + "\n\n"
                 + "Optional: Enter reason (or leave blank):",
                 "Confirm Decline", JOptionPane.WARNING_MESSAGE);
 
@@ -96,13 +95,13 @@ public boolean declineVolunteer(Volunteer volunteer) {
 
         int confirm = JOptionPane.showConfirmDialog(view,
                 "Are you sure you want to DECLINE?\n\n"
-                + "Volunteer: " + first.getFullName(),
+                + "Volunteer: " + firstInQueue.getFullName(),
                 "Final Confirmation", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            if (DataManager.declineVolunteer(first.getUsername())) {
+            if (DataManager.declineVolunteer(firstInQueue.getUsername())) {
                 JOptionPane.showMessageDialog(view,
-                        "✗ " + first.getFullName() + " DECLINED.",
+                        "✗ " + firstInQueue.getFullName() + " DECLINED.",
                         "Volunteer Declined", JOptionPane.INFORMATION_MESSAGE);
                 return true;
             }
