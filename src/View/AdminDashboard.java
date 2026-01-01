@@ -21,6 +21,7 @@ import javax.swing.Timer;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import javax.swing.Box;
 
 
 
@@ -39,9 +40,10 @@ public class AdminDashboard extends javax.swing.JFrame {
     private AdminController controller;
     //private VolunteerCRUDController crudController;  
     private User currentUser;
-
-
     
+    private CalendarPanel calendarPanel;
+
+        
     /**
      * Creates new form NewJFrame
      */
@@ -88,6 +90,35 @@ public class AdminDashboard extends javax.swing.JFrame {
         // ===== END OF ROUNDED PANELS SECTION =====
         
         
+        totalVolunteersPanel.removeAll(); 
+        totalVolunteersPanel.setLayout(new BoxLayout(totalVolunteersPanel, BoxLayout.Y_AXIS));
+        
+        JLabel titleLabel = new JLabel("TOTAL VOLUNTEERS");
+        titleLabel.setFont(new Font("Perpetua Titling MT", Font.BOLD, 24));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setForeground(new Color(50, 50, 50));
+        totalVolunteersPanel.add(titleLabel);
+     
+        lblTotalVolunteers.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblTotalVolunteers.setVerticalAlignment(SwingConstants.BOTTOM);
+        
+        totalVolunteersPanel.add(Box.createVerticalGlue());
+        totalVolunteersPanel.add(titleLabel);
+        totalVolunteersPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        totalVolunteersPanel.add(lblTotalVolunteers);
+        totalVolunteersPanel.add(Box.createVerticalGlue());
+        
+
+        /*
+        totalVolunteersPanel.add(lblTotalVolunteers, BorderLayout.CENTER);
+        lblTotalVolunteers.setText(String.valueOf(DataManager.getTotalVolunteers()));
+        lblTotalVolunteers.setHorizontalAlignment(SwingConstants.CENTER);
+        lblTotalVolunteers.setVerticalAlignment(SwingConstants.CENTER);
+        totalVolunteersPanel.add(lblTotalVolunteers, BorderLayout.CENTER);
+*/
+
+
+        
         /*
         //customize the table row height
         volunteerTable.setRowHeight(30);
@@ -103,7 +134,23 @@ public class AdminDashboard extends javax.swing.JFrame {
         
         volunteerTable.getTableHeader().setFont(new Font("Times New Roman", Font.BOLD,18));
     */
+        // ===== Initialize Custom CalendarPanel =====
+        calendarPanel = new CalendarPanel();
+
+        calendarPanel.setBounds(0, 120, CalendarPanel.getWidth(), CalendarPanel.getHeight()); // fits below the "Calendar" label
+        CalendarPanel.add(calendarPanel); // attach custom calendar to the JPanel
+
+        CalendarPanel.revalidate();
+
+        CalendarPanel.repaint();
+        
+        calendarPanel.setPreferredSize(new Dimension(CalendarPanel.getWidth(), CalendarPanel.getHeight()));
+        calendarPanel.setVisible(true);
+
     }
+    
+
+
     
     private void setupPendingVolunteerTable(){
         //configuring the existing table
@@ -495,6 +542,7 @@ private void handleDecline(Volunteer volunteer) {
         Parent1 = new javax.swing.JPanel();
         adminDashboardPanel = new javax.swing.JPanel();
         totalVolunteersPanel = new javax.swing.JPanel();
+        lblTotalVolunteers = new javax.swing.JLabel();
         newVolunteerRegistrationPanel = new javax.swing.JPanel();
         PendingVolunteersLabel = new javax.swing.JLabel();
         refreshButton = new javax.swing.JButton();
@@ -586,16 +634,11 @@ private void handleDecline(Volunteer volunteer) {
         adminDashboardPanel.setBackground(new java.awt.Color(214, 228, 231));
         adminDashboardPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        javax.swing.GroupLayout totalVolunteersPanelLayout = new javax.swing.GroupLayout(totalVolunteersPanel);
-        totalVolunteersPanel.setLayout(totalVolunteersPanelLayout);
-        totalVolunteersPanelLayout.setHorizontalGroup(
-            totalVolunteersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 350, Short.MAX_VALUE)
-        );
-        totalVolunteersPanelLayout.setVerticalGroup(
-            totalVolunteersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
-        );
+        totalVolunteersPanel.setLayout(new java.awt.GridBagLayout());
+
+        lblTotalVolunteers.setFont(new java.awt.Font("Perpetua Titling MT", 1, 150)); // NOI18N
+        lblTotalVolunteers.setText("0");
+        totalVolunteersPanel.add(lblTotalVolunteers, new java.awt.GridBagConstraints());
 
         adminDashboardPanel.add(totalVolunteersPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 190, 350, 300));
 
@@ -947,6 +990,12 @@ private void handleDecline(Volunteer volunteer) {
             "View / Delete" // placeholder for options
         };
         model.addRow(row);
+        //update total volunteers
+        /*
+        lblTotalVolunteers.setText(String.valueOf(DataManager.getTotalVolunteers()));
+        lblTotalVolunteers.setHorizontalAlignment(SwingConstants.CENTER);
+        lblTotalVolunteers.setVerticalAlignment(SwingConstants.CENTER);
+*/
     }
     
     // Refresh pending volunteers table
@@ -956,6 +1005,35 @@ private void handleDecline(Volunteer volunteer) {
 
     // Refresh approved volunteers table (Volunteer Record panel)
     public void refreshApprovedVolunteerTable() {
+        DefaultTableModel model = (DefaultTableModel) volunteerTable.getModel();
+        model.setRowCount(0);
+        
+        List<Volunteer> approvedVolunteers = DataManager.getApprovedVolunteers();
+        if (approvedVolunteers != null) {
+            int serialNo = 1;
+            for (Volunteer v : approvedVolunteers) {
+                Object[] row = {
+                    v.getVolunteerId(),
+                    v.getFullName(),
+                    v.getContactNumber(),
+                    v.getEmail(),
+                    "Approved",
+                    "View / Delete"
+                };
+                model.addRow(row);
+                serialNo++;
+            }
+        }
+
+        // Update total volunteers label
+        lblTotalVolunteers.setText(String.valueOf(DataManager.getTotalVolunteers()));
+    }
+    
+    public void refreshDashboardStats(){
+        //total volunteers = approved volunteers
+        lblTotalVolunteers.setText(String.valueOf(DataManager.getTotalVolunteers()));
+        
+        
     }
 
 
@@ -987,6 +1065,7 @@ private void handleDecline(Volunteer volunteer) {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable jTable1;
+    private javax.swing.JLabel lblTotalVolunteers;
     private javax.swing.JPanel navigator;
     private javax.swing.JPanel newVolunteerRegistrationPanel;
     private javax.swing.JTable pendingVolunteerTable;
