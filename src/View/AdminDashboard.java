@@ -865,7 +865,7 @@ private void handleDecline(Volunteer volunteer) {
     }//GEN-LAST:event_sortByComboBoxActionPerformed
 
     private void addEventsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addEventsButtonActionPerformed
-
+        EventAddDialog.showDialog(this);
     }//GEN-LAST:event_addEventsButtonActionPerformed
 
     private void eventButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eventButtonActionPerformed
