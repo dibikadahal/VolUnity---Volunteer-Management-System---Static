@@ -4,7 +4,10 @@
  */
 package View;
 
+import Model.ValidationUtil;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 
 public class EventAddDialog extends JDialog{
@@ -20,19 +23,21 @@ public class EventAddDialog extends JDialog{
     private JTextField organizerNameField;
     private JTextField organizerContactField;
     
-    private boolean validateForm() {
-        //required field checks
-        if (eventNameField.getText().trim().isEmpty()) {
-            showError("Event name is required.", eventNameField);
-            return false;
-        }
-        return true;
-    }
+    // Error labels
+    private JLabel eventNameError;
+    private JLabel descriptionError;
+    private JLabel startDateError;
+    private JLabel endDateError;
+    private JLabel locationError;
+    private JLabel eventStatusError;
+    private JLabel organizerNameError;
+    private JLabel organizerContactError;
 
     public EventAddDialog(JFrame parent) {
         super(parent, "Add New Event", true); // Modal dialog
 
         initComponents();
+        initValidation();
         setLocationRelativeTo(parent); // Center on parent
     }
 
@@ -67,18 +72,42 @@ public class EventAddDialog extends JDialog{
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
+        
+        //add all input fields with error labels
+        Object[] eventNameComponents = addInputFieldWithError(formPanel, "Event Name", false);
+        eventNameField = (JTextField) eventNameComponents[0];
+        eventNameError = (JLabel) eventNameComponents[1];
+        
+        Object[] descriptionComponents = addTextAreaFieldWithError(formPanel, "Description:");
+        descriptionArea = (JTextArea) descriptionComponents[0];
+        descriptionError = (JLabel) descriptionComponents[1];
+        
+        Object[] startDateComponents = addInputFieldWithError(formPanel, "Start Date (yyyy-MM-dd):", false);
+        startDateField = (JTextField) startDateComponents[0];
+        startDateError = (JLabel) startDateComponents[1];
 
-        // Add all input fields
-        eventNameField = addInputField(formPanel, "Event Name:", false);
-        descriptionArea = addTextAreaField(formPanel, "Description:");
-        startDateField = addInputField(formPanel, "Start Date:", false);
-        endDateField = addInputField(formPanel, "End Date:", false);
-        locationField = addInputField(formPanel, "Location:", false);
+        Object[] endDateComponents = addInputFieldWithError(formPanel, "End Date (yyyy-MM-dd):", false);
+        endDateField = (JTextField) endDateComponents[0];
+        endDateError = (JLabel) endDateComponents[1];
+        
+        Object[] locationComponents = addInputFieldWithError(formPanel, "Location:", false);
+        locationField = (JTextField) locationComponents[0];
+        locationError = (JLabel) locationComponents[1];
+
         eventTypeCombo = addComboBoxField(formPanel, "Event Type:",
                 new String[]{"Workshop", "Training", "Community Service", "Fundraiser", "Seminar", "Competition", "Other"});
-        eventStatusField = addInputField(formPanel, "Event Status:", false);
-        organizerNameField = addInputField(formPanel, "Organizer's Name:", false);
-        organizerContactField = addInputField(formPanel, "Organizer's Contact:", false);
+
+        Object[] eventStatusComponents = addInputFieldWithError(formPanel, "Event Status:", false);
+        eventStatusField = (JTextField) eventStatusComponents[0];
+        eventStatusError = (JLabel) eventStatusComponents[1];
+
+        Object[] organizerNameComponents = addInputFieldWithError(formPanel, "Organizer's Name:", false);
+        organizerNameField = (JTextField) organizerNameComponents[0];
+        organizerNameError = (JLabel) organizerNameComponents[1];
+
+        Object[] organizerContactComponents = addInputFieldWithError(formPanel, "Organizer's Contact:", false);
+        organizerContactField = (JTextField) organizerContactComponents[0];
+        organizerContactError = (JLabel) organizerContactComponents[1];
 
         // Wrap in scroll pane
         JScrollPane scrollPane = new JScrollPane(formPanel);
@@ -101,10 +130,7 @@ public class EventAddDialog extends JDialog{
         saveButton.setFocusPainted(false);
         saveButton.setBorderPainted(false);
         saveButton.setPreferredSize(new Dimension(120, 40));
-        saveButton.addActionListener(e -> {
-            // TODO: Add save logic here
-            dispose();
-        });
+        saveButton.addActionListener(e -> handleSave());
 
         // Cancel Button
         JButton cancelButton = new JButton("CANCEL");
@@ -122,16 +148,224 @@ public class EventAddDialog extends JDialog{
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
+    }
+    
+    //Initialize real time validation
+    private void initValidation(){
+        //Event name validation
+        addDocumentListener(eventNameField, () -> {
+            String error = ValidationUtil.validateEventName(eventNameField.getText());
+            if(error != null){
+                showError(eventNameError, error);
+            }else{
+                hideError(eventNameError);
+            }
+        });
         
-        saveButton.addActionListener(e -> {
-            if (validateForm()) {
-                dispose();
+        // Description validation
+        addDocumentListener(descriptionArea, () -> {
+            String error = ValidationUtil.validateDescription(descriptionArea.getText());
+            if (error != null) {
+                showError(descriptionError, error);
+            } else {
+                hideError(descriptionError);
+            }
+        });
+        
+        // Start Date validation
+        addDocumentListener(startDateField, () -> {
+            String error = ValidationUtil.validateEventDate(startDateField.getText());
+            if (error != null) {
+                showError(startDateError, error);
+            } else {
+                hideError(startDateError);
+                // Revalidate end date when start date changes
+                validateEndDate();
+            }
+        });
+        
+        // End Date validation
+        addDocumentListener(endDateField, () -> validateEndDate());
+        
+        // Location validation
+        addDocumentListener(locationField, () -> {
+            String error = ValidationUtil.validateLocation(locationField.getText());
+            if (error != null) {
+                showError(locationError, error);
+            } else {
+                hideError(locationError);
+            }
+        });
+        
+        // Event Status validation
+        addDocumentListener(eventStatusField, () -> {
+            String error = ValidationUtil.validateEventStatus(eventStatusField.getText());
+            if (error != null) {
+                showError(eventStatusError, error);
+            } else {
+                hideError(eventStatusError);
+            }
+        });
+        
+        // Organizer Name validation
+        addDocumentListener(organizerNameField, () -> {
+            String error = ValidationUtil.validateOrganizerName(organizerNameField.getText());
+            if (error != null) {
+                showError(organizerNameError, error);
+            } else {
+                hideError(organizerNameError);
+            }
+        });
+        
+        // Organizer Contact validation
+        addDocumentListener(organizerContactField, () -> {
+            String error = ValidationUtil.validateOrganizerContact(organizerContactField.getText());
+            if (error != null) {
+                showError(organizerContactError, error);
+            } else {
+                hideError(organizerContactError);
             }
         });
     }
+    
+    private void validateEndDate(){
+        String endValue = endDateField.getText();
+        String startValue = startDateField.getText();
+        
+        // First check if end date itself is valid
+        String endError = ValidationUtil.validateEventDate(endValue);
+        if (endError != null) {
+            showError(endDateError, endError);
+            return;
+        }
+        
+        // Then check if date range is valid
+        String rangeError = ValidationUtil.validateDateRange(startValue, endValue);
+        if (rangeError != null) {
+            showError(endDateError, rangeError);
+        } else {
+            hideError(endDateError);
+        }
+    }
+    
+    
+    private void handleSave(){
+        //validate all fields
+        boolean isValid = true;
+        
+        if (!ValidationUtil.isNotEmpty(eventNameField.getText())
+                || !ValidationUtil.hasMinLength(eventNameField.getText(), 3)) {
+            showError(eventNameError, eventNameField.getText().isEmpty()
+                    ? "Event name is required" : "Event name must be at least 3 characters");
+            isValid = false;
+        }
+        
+        if (!ValidationUtil.isNotEmpty(descriptionArea.getText())
+                || !ValidationUtil.hasMinLength(descriptionArea.getText(), 10)) {
+            showError(descriptionError, descriptionArea.getText().isEmpty()
+                    ? "Description is required" : "Description must be at least 10 characters");
+            isValid = false;
+        }
+        
+        if (!ValidationUtil.isValidDate(startDateField.getText())) {
+            showError(startDateError, startDateField.getText().isEmpty()
+                    ? "Start date is required" : "Invalid date format");
+            isValid = false;
+        }
+        
+        if (!ValidationUtil.isValidDate(endDateField.getText())) {
+            showError(endDateError, endDateField.getText().isEmpty()
+                    ? "End date is required" : "Invalid date format");
+            isValid = false;
+        } else if (!ValidationUtil.isEndDateAfterStartDate(startDateField.getText(), endDateField.getText())) {
+            showError(endDateError, "End date must be after or equal to start date");
+            isValid = false;
+        }
+        
+        if (!ValidationUtil.isNotEmpty(locationField.getText())) {
+            showError(locationError, "Location is required");
+            isValid = false;
+        }
+        
+        if (!ValidationUtil.isNotEmpty(eventStatusField.getText())) {
+            showError(eventStatusError, "Event status is required");
+            isValid = false;
+        }
 
-    // Add a single line input field
-    private JTextField addInputField(JPanel panel, String label, boolean isMultiline) {
+        if (!ValidationUtil.isAlphaWithSpaces(organizerNameField.getText())) {
+            showError(organizerNameError, organizerNameField.getText().isEmpty()
+                    ? "Organizer name is required" : "Name should contain only letters");
+            isValid = false;
+        }
+
+        if (!ValidationUtil.isValidPhone(organizerContactField.getText())) {
+            showError(organizerContactError, organizerContactField.getText().isEmpty()
+                    ? "Organizer contact is required" : "Invalid phone number format");
+            isValid = false;
+        }
+
+        if (isValid) {
+            // TODO: Add save logic here (call controller)
+            JOptionPane.showMessageDialog(this, "Event saved successfully!",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, "Please fix all validation errors",
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    
+    // Helper method to add document listener
+    private void addDocumentListener(JTextArea textComponent, Runnable validation) {
+        textComponent.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) {
+                validation.run();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                validation.run();
+            }
+
+            public void insertUpdate(DocumentEvent e) {
+                validation.run();
+            }
+        });
+    }
+    
+    private void addDocumentListener(JTextField textField, Runnable validation) {
+        textField.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) {
+                validation.run();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                validation.run();
+            }
+
+            public void insertUpdate(DocumentEvent e) {
+                validation.run();
+            }
+        });
+    }
+    
+    // Show error message
+    private void showError(JLabel errorLabel, String message) {
+        if (errorLabel != null) {
+            errorLabel.setText(message);
+            errorLabel.setVisible(true);
+        }
+    }
+
+    // Hide error message
+    private void hideError(JLabel errorLabel) {
+        if (errorLabel != null) {
+            errorLabel.setVisible(false);
+        }
+    }
+    
+    // Add input field with error label
+    private Object[] addInputFieldWithError(JPanel panel, String label, boolean isMultiline) {
         JPanel rowPanel = new JPanel();
         rowPanel.setLayout(new BorderLayout(10, 5));
         rowPanel.setBackground(Color.WHITE);
@@ -149,8 +383,15 @@ public class EventAddDialog extends JDialog{
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
 
+        // Error label
+        JLabel errorLabel = new JLabel();
+        errorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setVisible(false);
+
         rowPanel.add(labelComp, BorderLayout.NORTH);
         rowPanel.add(textField, BorderLayout.CENTER);
+        rowPanel.add(errorLabel, BorderLayout.SOUTH);
 
         panel.add(rowPanel);
 
@@ -159,11 +400,11 @@ public class EventAddDialog extends JDialog{
         separator.setForeground(new Color(220, 220, 220));
         panel.add(separator);
 
-        return textField;
+        return new Object[]{textField, errorLabel};
     }
-
-    // Add a multiline text area field
-    private JTextArea addTextAreaField(JPanel panel, String label) {
+    
+    // Add text area field with error label
+    private Object[] addTextAreaFieldWithError(JPanel panel, String label) {
         JPanel rowPanel = new JPanel();
         rowPanel.setLayout(new BorderLayout(10, 5));
         rowPanel.setBackground(Color.WHITE);
@@ -186,8 +427,15 @@ public class EventAddDialog extends JDialog{
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
 
+        // Error label
+        JLabel errorLabel = new JLabel();
+        errorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setVisible(false);
+
         rowPanel.add(labelComp, BorderLayout.NORTH);
         rowPanel.add(scrollPane, BorderLayout.CENTER);
+        rowPanel.add(errorLabel, BorderLayout.SOUTH);
 
         panel.add(rowPanel);
 
@@ -196,10 +444,11 @@ public class EventAddDialog extends JDialog{
         separator.setForeground(new Color(220, 220, 220));
         panel.add(separator);
 
-        return textArea;
+        return new Object[]{textArea, errorLabel};
     }
-
-    // Add a combo box field
+    
+    
+    // Add combo box field
     private JComboBox<String> addComboBoxField(JPanel panel, String label, String[] options) {
         JPanel rowPanel = new JPanel();
         rowPanel.setLayout(new BorderLayout(10, 5));
@@ -231,14 +480,14 @@ public class EventAddDialog extends JDialog{
 
         return comboBox;
     }
-
-    // Show the dialog with a blurred/dimmed background effect
+    
+    
+    // Show dialog with dimmed background
     public static void showDialog(JFrame parent) {
-        // Create glass pane for blur/dim effect
         final JPanel glassPane = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
-                g.setColor(new Color(0, 0, 0, 120)); // Semi-transparent black
+                g.setColor(new Color(0, 0, 0, 120));
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
@@ -247,24 +496,47 @@ public class EventAddDialog extends JDialog{
         parent.setGlassPane(glassPane);
         glassPane.setVisible(true);
 
-        // Show dialog
         EventAddDialog dialog = new EventAddDialog(parent);
         dialog.setVisible(true);
 
-        // Hide glass pane after dialog closes
         glassPane.setVisible(false);
     }
+
     
-    
-    private void showError(String message, JComponent field){
-        JOptionPane.showMessageDialog(
-        this, message, "Validation error", JOptionPane.ERROR_MESSAGE);
-            field.requestFocus();
-            field.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+    // Getters for field values (for Controller to use)
+    public String getEventName() {
+        return eventNameField.getText().trim();
     }
-    
-    private void resetBorder(JComponent field) {
-        field.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+
+    public String getEventDescription() {
+        return descriptionArea.getText().trim();
     }
- 
+
+    public String getEventStartDate() {
+        return startDateField.getText().trim();
+    }
+
+    public String getEventEndDate() {
+        return endDateField.getText().trim();
+    }
+
+    public String geEventtLocation() {
+        return locationField.getText().trim();
+    }
+
+    public String getEventType() {
+        return (String) eventTypeCombo.getSelectedItem();
+    }
+
+    public String getEventStatus() {
+        return eventStatusField.getText().trim();
+    }
+
+    public String getEventOrganizerName() {
+        return organizerNameField.getText().trim();
+    }
+
+    public String getEventOrganizerContact() {
+        return organizerContactField.getText().trim();
+    }
 }
