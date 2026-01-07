@@ -22,6 +22,7 @@ import java.util.List;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javax.swing.Box;
+import javax.swing.JOptionPane;
 
 
 
@@ -42,6 +43,9 @@ public class AdminDashboard extends javax.swing.JFrame {
     private User currentUser;
     
     private CalendarPanel calendarPanel;
+    
+    private List<Model.Event> cachedEvents;
+    private DefaultTableModel eventsTableModel;
 
         
     /**
@@ -54,9 +58,9 @@ public class AdminDashboard extends javax.swing.JFrame {
         
         controller = new AdminController(this);
         setupPendingVolunteerTable();
+        setupEventsTable();
         //crudController = new VolunteerCRUDController(this);
-        
-        
+       
         //calling date time and Welcome message
         updateWelcomeMessage(user.getUsername(), user.getRole());
         startDateTimeDisplay();
@@ -101,12 +105,9 @@ public class AdminDashboard extends javax.swing.JFrame {
      
         lblTotalVolunteers.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblTotalVolunteers.setVerticalAlignment(SwingConstants.BOTTOM);
-        
         totalVolunteersPanel.add(Box.createVerticalGlue());
-        totalVolunteersPanel.add(titleLabel);
         totalVolunteersPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         totalVolunteersPanel.add(lblTotalVolunteers);
-        totalVolunteersPanel.add(Box.createVerticalGlue());
         
 
         /*
@@ -138,7 +139,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         calendarPanel = new CalendarPanel();
 
         calendarPanel.setBounds(0, 120, CalendarPanel.getWidth(), CalendarPanel.getHeight()); // fits below the "Calendar" label
-        CalendarPanel.add(calendarPanel); // attach custom calendar to the JPanel
+        this.CalendarPanel.add(calendarPanel); // attach custom calendar to the JPanel
 
         CalendarPanel.revalidate();
 
@@ -204,6 +205,7 @@ public class AdminDashboard extends javax.swing.JFrame {
                 return;
             }
         
+            /*
             //console output
         System.out.println("\n╔══════════════════════════════════════╗");
         System.out.println("║       VOLUNTEER QUEUE STATUS         ║");
@@ -216,7 +218,8 @@ public class AdminDashboard extends javax.swing.JFrame {
         }
         System.out.println("║ Queue Size:    " + String.format("%-22s", DataManager.getQueueSize() + "/100") + "║");
         System.out.println("╚══════════════════════════════════════╝\n");
-
+*/
+            
         
         //Your existing loop to populate table
         int serialNo = 1;
@@ -520,6 +523,202 @@ private void handleDecline(Volunteer volunteer) {
         });
     }
     
+    
+    
+    //==========EVENT TABLE SETUP===================
+    private void setupEventsTable(){
+        //Configure the existing table
+        jEventTable.setRowHeight(40);
+        jEventTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        jEventTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        jEventTable.getTableHeader().setBackground(new Color(91, 158, 165));
+        jEventTable.getTableHeader().setForeground(Color.WHITE);
+        
+        //get the table model
+        eventsTableModel = (DefaultTableModel) jEventTable.getModel();
+        
+        //clearv any existing data
+        eventsTableModel.setRowCount(0);
+        
+        //set coulmn widths
+        jEventTable.getColumnModel().getColumn(0).setPreferredWidth(80);   // Event ID
+        jEventTable.getColumnModel().getColumn(1).setPreferredWidth(200);  // Name
+        jEventTable.getColumnModel().getColumn(2).setPreferredWidth(100);  // Start Date
+        jEventTable.getColumnModel().getColumn(3).setPreferredWidth(100);  // Duration
+        jEventTable.getColumnModel().getColumn(4).setPreferredWidth(150);  // Location
+        jEventTable.getColumnModel().getColumn(5).setPreferredWidth(150);  // Organizer's name
+        jEventTable.getColumnModel().getColumn(6).setPreferredWidth(250);  // Options
+        
+        //add button renderers and editors for options column
+        jEventTable.getColumn("Options").setCellRenderer(new EventButtonRenderer());
+        jEventTable.getColumn("Options").setCellEditor(new EventButtonEditor(new JCheckBox()));
+        
+        //load initial data
+        loadEvents();
+    }
+    
+    private void loadEvents(){
+        //clear existing rows
+        eventsTableModel.setRowCount(0);
+        cachedEvents = DataManager.getEvents();
+        
+        if (cachedEvents.isEmpty()){
+            return;
+        }
+        
+        //populate table
+        for (Model.Event event : cachedEvents){
+            Object[] row = {
+                event.getEventId(),
+                event.getEventName(),
+                event.getStartDate(),
+                event.getDuration(),
+                event.getLocation(),
+                event.getOrganizerName(),
+                event.getEventId() //pass event id to the buttons
+            };
+            eventsTableModel.addRow(row);
+        }
+    }
+    
+    //=====EVENT BUTTON RENDERER==============
+    class EventButtonRenderer extends JPanel implements javax.swing.table.TableCellRenderer{
+        private JButton viewButton;
+        private JButton updateButton;
+        private JButton deleteButton;
+        
+        public EventButtonRenderer(){
+            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+            setOpaque(true);
+            
+            viewButton = createEventButton("View", new Color(33, 150, 243));
+            updateButton = createEventButton("Update", new Color(76, 175, 80));
+            deleteButton = createEventButton("Delete", new Color(244, 67, 54));
+            
+            add(viewButton);
+            add(updateButton);
+            add(deleteButton);
+        }
+               
+        private JButton createEventButton(String text, Color color) {
+            JButton button = new JButton(text);
+            button.setFont(new Font("Arial", Font.BOLD, 12));
+            button.setBackground(color);
+            button.setForeground(Color.WHITE);
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setPreferredSize(new Dimension(70, 28));
+            return button;
+        }
+        
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column){
+            if (isSelected){
+                setBackground(table.getSelectionBackground());
+           }else{
+                setBackground(Color.WHITE);
+            }
+            return this;
+        }
+    }
+    
+    
+    //=======EVENT BUTTON EDITOR=================
+    class EventButtonEditor extends DefaultCellEditor{
+        private JPanel panel;
+        private JButton viewButton;
+        private JButton updateButton;
+        private JButton deleteButton;
+        private String eventId;
+        
+        public EventButtonEditor(JCheckBox checkBox){
+            super(checkBox);
+            
+            panel = new JPanel (new FlowLayout(FlowLayout.CENTER, 5, 5));
+            panel.setOpaque(true);
+            
+            viewButton = createEventButton("View", new Color(33, 150, 243));
+            updateButton = createEventButton("Update", new Color(76, 175, 80));
+            deleteButton = createEventButton("Delete", new Color(244, 67, 54));
+            
+            //View Button action
+            viewButton.addActionListener(e -> {
+                fireEditingStopped();
+                handleViewEvent(eventId);
+            });
+            
+            // Update button action
+            updateButton.addActionListener(e -> {
+                fireEditingStopped();
+                handleUpdateEvent(eventId);
+            });
+            
+            // Delete button action
+            deleteButton.addActionListener(e -> {
+                fireEditingStopped();
+                handleDeleteEvent(eventId);
+            });
+            
+            panel.add(viewButton);
+            panel.add(updateButton);
+            panel.add(deleteButton);
+        }
+        
+        private JButton createEventButton(String text, Color color){
+            JButton button = new JButton(text);
+            button.setFont(new Font("Arial", Font.BOLD, 12));
+            button.setBackground(color);
+            button.setForeground(Color.WHITE);
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setPreferredSize(new Dimension(70, 28));
+            return button;
+        }
+        
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            eventId = value.toString();
+            panel.setBackground(table.getSelectionBackground());
+            return panel;
+        }
+        
+        @Override
+        public Object getCellEditorValue() {
+            return eventId;
+        }
+    }
+        
+        //EVENT ACTION HANDLERS
+        private void handleViewEvent(String eventId){
+            Model.Event event = DataManager.getEventById(eventId);
+            if (event != null) {
+                EventDetailsDialog.showDialog(this, event);
+            } else {
+                JOptionPane.showMessageDialog(this, "Event not found!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        
+        private void handleUpdateEvent(String eventId) {
+            JOptionPane.showMessageDialog(this,
+                    "Update functionality for Event ID: " + eventId + " will be implemented soon",
+                    "Update Event", JOptionPane.INFORMATION_MESSAGE);
+            // TODO: Implement update dialog similar to EventAddDialog
+        }
+        
+        private void handleDeleteEvent(String eventId) {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Are you sure you want to delete this event?",
+                    "Confirm Delete", JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                // TODO: Implement delete logic in DataManager
+                JOptionPane.showMessageDialog(this, "Event deleted successfully!",
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadEvents(); // Refresh table
+            }
+    }
+ 
+    
    
 
     /**
@@ -564,7 +763,7 @@ private void handleDecline(Volunteer volunteer) {
         EventPanel = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        jEventTable = new javax.swing.JTable();
         addEventsButton = new javax.swing.JButton();
         sortEventsJCombo = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
@@ -771,7 +970,7 @@ private void handleDecline(Volunteer volunteer) {
         jLabel1.setText("Events Record");
         EventPanel.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 30, -1, -1));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        jEventTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null, null},
                 {null, null, null, null, null, null, null},
@@ -782,7 +981,8 @@ private void handleDecline(Volunteer volunteer) {
                 "Event ID", "Name", "Start Date", "Duration", "Location", "Organizer's name", "Options"
             }
         ));
-        jScrollPane2.setViewportView(jTable1);
+        jEventTable.setRowHeight(50);
+        jScrollPane2.setViewportView(jEventTable);
 
         EventPanel.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 230, 1330, 720));
 
@@ -1002,6 +1202,10 @@ private void handleDecline(Volunteer volunteer) {
     public void refreshPendingVolunteerTable() {
         loadPendingVolunteers();   // you already have this method
     }
+    
+    public void refreshEventsTable(){
+        loadEvents();
+    }
 
     // Refresh approved volunteers table (Volunteer Record panel)
     public void refreshApprovedVolunteerTable() {
@@ -1055,6 +1259,7 @@ private void handleDecline(Volunteer volunteer) {
     private javax.swing.JButton eventButton;
     private javax.swing.JTextField eventsSearchBox;
     private javax.swing.JPanel graphPanel;
+    private javax.swing.JTable jEventTable;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -1064,7 +1269,6 @@ private void handleDecline(Volunteer volunteer) {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTable jTable1;
     private javax.swing.JLabel lblTotalVolunteers;
     private javax.swing.JPanel navigator;
     private javax.swing.JPanel newVolunteerRegistrationPanel;
@@ -1082,5 +1286,5 @@ private void handleDecline(Volunteer volunteer) {
     private javax.swing.JLabel welcomeLabel;
     // End of variables declaration//GEN-END:variables
 
-    
+   
 }
