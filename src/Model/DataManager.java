@@ -7,7 +7,6 @@ package Model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedList;
-import Model.Volunteer;
 
 /**
  *Centralized in-memory data storage
@@ -505,22 +504,29 @@ public class DataManager {
     
     
     //a method to delete approved volunteer by id
-    public static boolean deleteApprovedVolunteer(int volunteerId){
-    return approvedVolunteers.removeIf (
-            v -> v.getVolunteerId() == volunteerId
-        );
+    public static boolean deleteApprovedVolunteerById(String volunteerId) {
+        for (Volunteer volunteer : approvedVolunteers) {
+            if (String.valueOf(volunteer.getVolunteerId()).equals(volunteerId)) {
+                boolean removed = approvedVolunteers.remove(volunteer);
+                if (removed) {
+                    System.out.println("✓ Deleted volunteer: " + volunteer.getFullName());
+                }
+                return removed;
+            }
+        }
+        return false;
     }
     
-    //add method to get volunteer by ID
-    public static Volunteer getApprovedVolunteerById(int volunteerId){
-        for (Volunteer volunteer : approvedVolunteers){
-            if (volunteer.getVolunteerId() == (volunteerId)){
+    //add method to get volunteer by ID  
+    public static Volunteer getApprovedVolunteerById(String volunteerId) {
+        for (Volunteer volunteer : approvedVolunteers) {
+            if (String.valueOf(volunteer.getVolunteerId()).equals(volunteerId)) {
                 return volunteer;
             }
         }
         return null;
     }
-    
+      
     
     //ADD GETTER METHOD FOR EVENTS
     public static ArrayList<Event> getEvents(){
@@ -536,7 +542,46 @@ public class DataManager {
         }
         return null;
     }
+    
+    
+    /*
+    // ADD new event
+    public static boolean addEvent(Event event) {
+        if (event == null) {
+            return false;
+        }
+        events.add(event);
+        return true;
+    }
 
+    // UPDATE event
+    public static boolean updateEvent(String eventId, Event updatedEvent) {
+        for (int i = 0; i < events.size(); i++) {
+            if (events.get(i).getEventId().equals(eventId)) {
+                events.set(i, updatedEvent);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // DELETE event
+    public static boolean deleteEvent(String eventId) {
+        Event toRemove = null;
+        for (Event e : events) {
+            if (e.getEventId().equals(eventId)) {
+                toRemove = e;
+                break;
+            }
+        }
+
+        if (toRemove != null) {
+            events.remove(toRemove);
+            return true;
+        }
+        return false;
+    }
+*/
 
     
     //===========STATISTICS==================
@@ -547,4 +592,10 @@ public class DataManager {
     public static int getTotalPending(){
         return queueSize;
     }
+    
+    /*
+    public static int getTotalEvents() {
+        return events.size();
+    }
+*/
 }
