@@ -9,12 +9,13 @@ import Model.DataManager;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import View.AdminDashboard;
+import View.VolunteerDetailsDialog;
 
 
 public class AdminController {
- private JFrame view;
+ private AdminDashboard view;
  
- public AdminController(JFrame view){
+ public AdminController(AdminDashboard view){
      this.view = view;
  }
  
@@ -109,4 +110,3 @@ public boolean declineVolunteer(Volunteer volunteer) {
         return false;
     }
 }
-
