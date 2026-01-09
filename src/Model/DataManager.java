@@ -482,34 +482,37 @@ public class DataManager {
     }
     
     //this method processes approval
-    public static boolean approveVolunteer(Volunteer volunteer){
-        //1. generate id
-        volunteer.setVolunteerId(volunteerIdCounter++);
-        
-        //2. update setStatus
-        volunteer.setStatus("Approved");
-        approvedVolunteers.add(volunteer);
-        
-//create login credentials
-        User user = new User(
-        volunteer.getUsername(),
-                volunteer.getPassword(),
-                        "user"
-        );
-        users.add(user);
-        
-        return true;
-        
+    public static Volunteer getApprovedVolunteerById(String volunteerId) {
+        for (Volunteer volunteer : approvedVolunteers) {
+            // Convert volunteerId (int) to String for comparison
+            if (String.valueOf(volunteer.getVolunteerId()).equals(volunteerId)) {
+                return volunteer;
+            }
+        }
+        return null;
     }
     
     
     //a method to delete approved volunteer by id
-    public static boolean deleteApprovedVolunteerById(String volunteerId) {
+    public static boolean deleteApprovedVolunteer(String volunteerId) {
         for (Volunteer volunteer : approvedVolunteers) {
-            if (String.valueOf(volunteer.getVolunteerId()).equals(volunteerId)) {
+           //convert volunteerId (int) to String for Comparision
+           if(String.valueOf(volunteer.getVolunteerId()).equals(volunteerId)){
                 boolean removed = approvedVolunteers.remove(volunteer);
                 if (removed) {
                     System.out.println("✓ Deleted volunteer: " + volunteer.getFullName());
+                    
+                    //also remove from the users list
+                    User userToRemove = null;
+                    for (User u : users){
+                        if (u.getUsername().equals(volunteer.getUsername())){
+                            userToRemove = u;
+                            break;
+                        }
+                    }
+                    if (userToRemove != null){
+                        users.remove(userToRemove);
+                    }
                 }
                 return removed;
             }
@@ -517,15 +520,43 @@ public class DataManager {
         return false;
     }
     
-    //add method to get volunteer by ID  
-    public static Volunteer getApprovedVolunteerById(String volunteerId) {
-        for (Volunteer volunteer : approvedVolunteers) {
-            if (String.valueOf(volunteer.getVolunteerId()).equals(volunteerId)) {
-                return volunteer;
-            }
-        }
-        return null;
+    //get total approved volunteers count
+    public static int getTotalVolunteers(){
+        return approvedVolunteers.size();
     }
+    
+    //add method to get volunteer by ID  
+    public static boolean approveVolunteer(Volunteer volunteer){
+        //generate ID
+            volunteer.setVolunteerId(volunteerIdCounter++);
+            
+            // 2. Update status
+        volunteer.setStatus("Approved");
+        approvedVolunteers.add(volunteer);
+
+        // 3. Create login credentials
+        User user = new User(
+                volunteer.getUsername(),
+                volunteer.getPassword(),
+                "user"
+        );
+        users.add(user);
+            
+        System.out.println("✓ Approved volunteer: " + volunteer.getFullName()
+                + " with ID: " + volunteer.getVolunteerId());
+
+        return true;
+    }
+   
+    /*
+    public static boolean approveVolunteer(Volunteer volunteer){
+        if (volunteer != null && !approvedVolunteers.add(volunteer)){
+            approvedVolunteers.add(volunteer);
+            return true;
+        }
+        return false;
+    }
+    */
       
     
     //ADD GETTER METHOD FOR EVENTS
@@ -585,17 +616,18 @@ public class DataManager {
 
     
     //===========STATISTICS==================
+    /*
     public static int getTotalVolunteers(){
         return approvedVolunteers.size();
     }
+    */
     
     public static int getTotalPending(){
         return queueSize;
     }
     
-    /*
+   
     public static int getTotalEvents() {
         return events.size();
     }
-*/
 }
