@@ -575,7 +575,7 @@ public class DataManager {
     }
     
     
-    /*
+   
     // ADD new event
     public static boolean addEvent(Event event) {
         if (event == null) {
@@ -612,7 +612,6 @@ public class DataManager {
         }
         return false;
     }
-*/
 
     
     //===========STATISTICS==================
