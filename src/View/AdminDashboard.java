@@ -23,6 +23,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javax.swing.Box;
 import javax.swing.JOptionPane;
+import java.util.LinkedList;  
+
 
 
 
@@ -39,7 +41,7 @@ public class AdminDashboard extends javax.swing.JFrame {
     //private DefaultTableModel volunteerTableModel;  // For CRUD table
 
     private AdminController controller;
-    //private VolunteerCRUDController crudController;  
+    private VolunteerCRUDController volunteerCRUDController;  
     private User currentUser;
     
     private CalendarPanel calendarPanel;
@@ -57,7 +59,10 @@ public class AdminDashboard extends javax.swing.JFrame {
         initComponents();
         
         controller = new AdminController(this);
+        volunteerCRUDController = new VolunteerCRUDController(this);
+        
         setupPendingVolunteerTable();
+        setupApprovedVolunteerTable();
         setupEventsTable();
         //crudController = new VolunteerCRUDController(this);
        
@@ -235,6 +240,175 @@ public class AdminDashboard extends javax.swing.JFrame {
             pendingTableModel.addRow(row);
         }
     }
+    
+    
+    
+    //===============APPROVED VOLUNTEER TABLE SET UP =======================================
+    private void setupApprovedVolunteerTable(){
+        //configure table 
+        volunteerTable.setRowHeight(40);
+        volunteerTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        volunteerTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        volunteerTable.getTableHeader().setBackground(new Color(91, 158, 165));
+        volunteerTable.getTableHeader().setForeground(Color.WHITE);
+        
+        //set column widths
+        volunteerTable.getColumnModel().getColumn(0).setPreferredWidth(100);  // Volunteer ID
+        volunteerTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Name
+        volunteerTable.getColumnModel().getColumn(2).setPreferredWidth(120); // Contact
+        volunteerTable.getColumnModel().getColumn(3).setPreferredWidth(200); // Email
+        volunteerTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Status
+        volunteerTable.getColumnModel().getColumn(5).setPreferredWidth(200); // Options
+        
+        //add button renderers and editors for Option column
+        volunteerTable.getColumn("Options").setCellRenderer(new ApprovedVolunteerButtonRenderer());
+        volunteerTable.getColumn("Options").setCellEditor(new ApprovedVolunteerButtonEditor(new JCheckBox()));
+    }
+    
+    
+    class ApprovedVolunteerButtonRenderer extends JPanel implements javax.swing.table.TableCellRenderer{
+        private JButton viewButton;
+        private JButton deleteButton;
+        
+        public ApprovedVolunteerButtonRenderer(){
+            setLayout(new FlowLayout(FlowLayout.CENTER, 10, 5));
+            setOpaque(true);
+            
+            viewButton = createVolunteerButton("View", new Color(33, 150, 243));
+            deleteButton = createVolunteerButton("Delete", new Color(244, 67, 54));
+            
+            add(viewButton);
+            add(deleteButton);
+        }
+        
+        private JButton createVolunteerButton(String text, Color color){
+            JButton button = new JButton(text);
+            button.setFont(new Font("Arial", Font.BOLD, 12));
+            button.setBackground(color);
+            button.setForeground(Color.WHITE);
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setPreferredSize(new Dimension(80, 30));
+            return button;
+        }
+        
+        
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setBackground(isSelected ? table.getSelectionBackground() : Color.WHITE);
+            return this;
+        }
+    }
+    
+     
+    class ApprovedVolunteerButtonEditor extends DefaultCellEditor {
+        private JPanel panel;
+        private JButton viewButton;
+        private JButton deleteButton;
+        private String volunteerId;
+
+        public ApprovedVolunteerButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+            panel.setOpaque(true);
+            
+            viewButton = createVolunteerButton("View", new Color(33, 150, 243));
+            deleteButton = createVolunteerButton("Delete", new Color(244, 67, 54));
+            
+            //View button action - ReUses the same VolunteerDetailsDialog
+            viewButton.addActionListener(e -> {
+                fireEditingStopped();
+                volunteerCRUDController.viewVolunteer(volunteerId);
+            });
+                    
+           //Delete button action
+            deleteButton.addActionListener(e -> {
+                fireEditingStopped();
+                volunteerCRUDController.deleteVolunteer(volunteerId);
+            });
+
+            panel.add(viewButton);
+            panel.add(deleteButton);      
+        }
+        
+        private JButton createVolunteerButton(String text, Color color) {
+            JButton button = new JButton(text);
+            button.setFont(new Font("Arial", Font.BOLD, 12));
+            button.setBackground(color);
+            button.setForeground(Color.WHITE);
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setPreferredSize(new Dimension(80, 30));
+            return button;
+        }
+        
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value,
+            boolean isSelected, int row, int column) {
+        volunteerId = value.toString();
+        panel.setBackground(table.getSelectionBackground());
+        return panel;
+    }
+
+    @Override
+    public Object getCellEditorValue() {
+        return volunteerId;
+    }
+}
+
+//public methods called by the controller
+//Show volunteer details - REUSES existing VolunteerDetailsDialog
+        public void showVolunteerDetails(Volunteer volunteer) {
+        VolunteerDetailsDialog.showDialog(this, volunteer);
+    }
+    
+    //show error message
+        public void showError(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
+    }
+        
+        //show success message
+    public void showSuccess(String message, String title) {
+    JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+}
+    
+    //confirm delete action
+        public boolean confirmDelete(String message) {
+    int result = JOptionPane.showConfirmDialog(this, message, "Confirm Delete",
+            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+    return result == JOptionPane.YES_OPTION;
+}
+        
+            // ========== UPDATE THIS METHOD ==========
+    public void refreshApprovedVolunteerTable() {
+    DefaultTableModel model = (DefaultTableModel) volunteerTable.getModel();
+    model.setRowCount(0);
+
+    LinkedList<Volunteer> approvedVolunteers = volunteerCRUDController.getAllApprovedVolunteers();
+    if (approvedVolunteers != null && !approvedVolunteers.isEmpty()) {
+        for (Volunteer v : approvedVolunteers) {
+            System.out.println("DEBUG - Volunteer ID: " + v.getVolunteerId() + ", Name: " + v.getFullName());
+            
+            Object[] row = {
+                v.getVolunteerId(),
+                v.getFullName(),
+                v.getContactNumber(),
+                v.getEmail(),
+                "Approved",
+                v.getVolunteerId() // Pass volunteer ID to buttons
+            };
+            model.addRow(row);
+        }
+    }
+    // Update total volunteers label
+    lblTotalVolunteers.setText(String.valueOf(DataManager.getTotalVolunteers()));
+}
+    
+    // ========== UPDATE THIS METHOD ==========
+    public void refreshDashboardStats() {
+    lblTotalVolunteers.setText(String.valueOf(DataManager.getTotalVolunteers()));
+}
     
     
     //================VOLUNTEER CRUD TABLE SETUP (to manage volunteers)=======================
@@ -1204,6 +1378,7 @@ private void handleDecline(Volunteer volunteer) {
         loadEvents();
     }
 
+    /*
     // Refresh approved volunteers table (Volunteer Record panel)
     public void refreshApprovedVolunteerTable() {
         DefaultTableModel model = (DefaultTableModel) volunteerTable.getModel();
@@ -1236,6 +1411,7 @@ private void handleDecline(Volunteer volunteer) {
         
         
     }
+*/
 
 
      
