@@ -30,6 +30,7 @@ public class Volunteer {
     private String registrationDateTime;
     
     //to store in the volunteerRecored pane;
+    private static int idCounter = 1;
     private int volunteerId;
     private String status;
     
@@ -37,6 +38,8 @@ public class Volunteer {
     //constructor with all fields (except auto-generated ones)
     public Volunteer(String fullName, String dateOfBirth, String gender, String contactNumber, String email, 
             String education, String skills, String pastExperience, String username, String password, String role){
+        this.volunteerId = idCounter++;
+
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;
         this.gender = gender;
@@ -177,5 +180,10 @@ public class Volunteer {
    public void setStatus(String status){
        this.status = status;
    }
+   
+   //id counter
+   public static void setIdCounter(int nextId) {
+    idCounter = nextId;
+}
     
 }
