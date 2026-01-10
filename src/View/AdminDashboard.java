@@ -51,7 +51,7 @@ public class AdminDashboard extends javax.swing.JFrame {
     
     private CalendarPanel calendarPanel;
     
-    private List<Model.Event> cachedEvents;
+    private List<Event> cachedEvents;
     private DefaultTableModel eventsTableModel;
     private javax.swing.JLabel lblTotalEvents;
     private InsertionSort sortController;
@@ -897,7 +897,7 @@ private void handleDecline(Volunteer volunteer) {
         }
         
         //populate table
-        for (Model.Event event : cachedEvents){
+        for (Event event : cachedEvents){
             Object[] row = {
                 event.getEventId(),
                 event.getEventName(),
@@ -1020,7 +1020,7 @@ private void handleDecline(Volunteer volunteer) {
         
         //EVENT ACTION HANDLERS
         private void handleViewEvent(String eventId){
-            Model.Event event = DataManager.getEventById(eventId);
+            Event event = DataManager.getEventById(eventId);
             if (event != null) {
                 EventDetailsDialog.showDialog(this, event);
             } else {
@@ -1072,7 +1072,7 @@ private void handleDecline(Volunteer volunteer) {
                 break;
 
             case "Event Name (Desc)":
-                MergeSort.sortNameByDescending(events);
+                MergeSort.sortByNameDescending(events);
                 break;
 
             case "Date (Asc)":
@@ -1103,8 +1103,11 @@ private void handleDecline(Volunteer volunteer) {
             eventsTableModel.addRow(row);
         }
     }
- 
-    
+        
+        //refresh events 
+        public void refreshEventsTable(){
+            loadEvents();
+        }  
    
 
     /**
@@ -1156,6 +1159,7 @@ private void handleDecline(Volunteer volunteer) {
         sortEventsJCombo = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
         eventsSearchBox = new javax.swing.JTextField();
+        eventsRefreshButton = new javax.swing.JButton();
         CalendarPanel = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
 
@@ -1428,6 +1432,15 @@ private void handleDecline(Volunteer volunteer) {
         EventPanel.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(1120, 160, 80, 30));
         EventPanel.add(eventsSearchBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(1200, 160, 190, 30));
 
+        eventsRefreshButton.setFont(new java.awt.Font("Sitka Text", 0, 18)); // NOI18N
+        eventsRefreshButton.setText("Refresh");
+        eventsRefreshButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                eventsRefreshButtonActionPerformed(evt);
+            }
+        });
+        EventPanel.add(eventsRefreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 160, 130, 30));
+
         Parent1.add(EventPanel, "card4");
 
         CalendarPanel.setBackground(new java.awt.Color(214, 228, 231));
@@ -1520,6 +1533,15 @@ private void handleDecline(Volunteer volunteer) {
         handleEventSort(selected);
     }
     }//GEN-LAST:event_sortEventsJComboActionPerformed
+
+    private void eventsRefreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eventsRefreshButtonActionPerformed
+        //rerset the combo box to default
+        sortEventsJCombo.setSelectedIndex(0);
+        //clear search box
+        eventsSearchBox.setText("");
+        //reload original events data
+        refreshEventsTable();
+    }//GEN-LAST:event_eventsRefreshButtonActionPerformed
     
 
     
@@ -1648,10 +1670,6 @@ private void handleDecline(Volunteer volunteer) {
         loadPendingVolunteers();   // you already have this method
     }
     
-    public void refreshEventsTable(){
-        loadEvents();
-    }
-
 
     /*
     // Refresh approved volunteers table (Volunteer Record panel)
@@ -1705,6 +1723,7 @@ private void handleDecline(Volunteer volunteer) {
     private javax.swing.JButton calendarButton;
     private javax.swing.JLabel dateTimeLabel;
     private javax.swing.JButton eventButton;
+    private javax.swing.JButton eventsRefreshButton;
     private javax.swing.JTextField eventsSearchBox;
     private javax.swing.JPanel graphPanel;
     private javax.swing.JTable jEventTable;
