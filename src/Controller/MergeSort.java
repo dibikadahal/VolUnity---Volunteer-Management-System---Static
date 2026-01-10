@@ -21,7 +21,7 @@ public class MergeSort {
     }
     
     //sorts by name in descending order
-    public static void sortNameByDescending(ArrayList<Event> events){
+    public static void sortByNameDescending(ArrayList<Event> events){
         if (events.size() <= 1){
             return;
         }
