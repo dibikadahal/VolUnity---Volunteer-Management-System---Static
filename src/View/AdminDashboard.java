@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import javax.swing.Box;
 import javax.swing.JOptionPane;
 import java.util.LinkedList;  
+import Controller.InsertionSort;
 
 
 
@@ -49,6 +50,7 @@ public class AdminDashboard extends javax.swing.JFrame {
     private List<Model.Event> cachedEvents;
     private DefaultTableModel eventsTableModel;
     private javax.swing.JLabel lblTotalEvents;
+    private InsertionSort sortController;
 
 
         
@@ -62,6 +64,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         
         controller = new AdminController(this);
         volunteerCRUDController = new VolunteerCRUDController(this);
+        sortController = new InsertionSort();
         
         setupPendingVolunteerTable();
         setupApprovedVolunteerTable();
@@ -394,6 +397,7 @@ totalEventsPanel.removeAll();
         return volunteerId;
     }
 }
+    
 
 //public methods called by the controller
 //Show volunteer details - REUSES existing VolunteerDetailsDialog
@@ -447,8 +451,9 @@ totalEventsPanel.removeAll();
     public void refreshDashboardStats() {
     lblTotalVolunteers.setText(String.valueOf(DataManager.getTotalVolunteers()));
      lblTotalEvents.setText(String.valueOf(DataManager.getTotalEvents()));
-
 }
+    
+    
     
     
     //================VOLUNTEER CRUD TABLE SETUP (to manage volunteers)=======================
@@ -735,6 +740,53 @@ private void handleDecline(Volunteer volunteer) {
                 g2.dispose();
             }
         });
+    }
+    
+    
+    //=========Insertion Sort for Volunteers name================
+//update the sortComboBox action handler
+    /*
+    private void sortByComboBoxActionPerformed(java.awt.event.ActionEvent evt){
+        String selected = (String) sortByComboBox.getSelectedItem();
+        
+        if("Name".equals(selected)){
+            sortVolunteersByName();
+        }else{
+            refreshApprovedVolunteerTable();
+        }
+    }
+    */
+    
+    //Add method to sort by name (Ascending)
+    private void sortVolunteersByNameAscending() {
+        LinkedList<Volunteer> sortedVolunteers = volunteerCRUDController.getVolunteersSortedByNameAscending();
+        displaySortedVolunteers(sortedVolunteers);
+    }
+    
+    //Add method to sort by name (Descending)
+    private void sortVolunteersByNameDescending() {
+        LinkedList<Volunteer> sortedVolunteers = volunteerCRUDController.getVolunteersSortedByNameDescending();
+        displaySortedVolunteers(sortedVolunteers);
+    }
+    
+    //Add method to display sorted volunteers
+    private void displaySortedVolunteers(LinkedList<Volunteer> volunteers) {
+        DefaultTableModel model = (DefaultTableModel) volunteerTable.getModel();
+        model.setRowCount(0);
+
+        if (volunteers != null && !volunteers.isEmpty()) {
+            for (Volunteer v : volunteers) {
+                Object[] row = {
+                    v.getVolunteerId(),
+                    v.getFullName(),
+                    v.getContactNumber(),
+                    v.getEmail(),
+                    "Approved",
+                    v.getVolunteerId()
+                };
+                model.addRow(row);
+            }
+        }
     }
     
     
@@ -1200,7 +1252,7 @@ private void handleDecline(Volunteer volunteer) {
         });
         volunteerPanel.add(searchTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(1150, 150, 200, 30));
 
-        sortByComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Sort By", "Name", "Status" }));
+        sortByComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Sort By", "Name (Asc)", "Name (Desc)" }));
         sortByComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 sortByComboBoxActionPerformed(evt);
@@ -1315,7 +1367,15 @@ private void handleDecline(Volunteer volunteer) {
     }//GEN-LAST:event_searchTextFieldActionPerformed
 
     private void sortByComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sortByComboBoxActionPerformed
-        // TODO add your handling code here:
+        String selected = (String) sortByComboBox.getSelectedItem();
+
+        if ("Name (Asc)".equals(selected)){
+            sortVolunteersByNameAscending();
+         }else if ("Name (Desc)".equals(selected)){
+             sortVolunteersByNameDescending();             
+         }else{
+             refreshApprovedVolunteerTable();
+         }
     }//GEN-LAST:event_sortByComboBoxActionPerformed
 
     private void addEventsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addEventsButtonActionPerformed
