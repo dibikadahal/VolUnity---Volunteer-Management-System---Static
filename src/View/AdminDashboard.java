@@ -69,7 +69,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         setupPendingVolunteerTable();
         setupApprovedVolunteerTable();
         setupEventsTable();
-        //crudController = new VolunteerCRUDController(this);
+        setupSearchListener();
        
         //calling date time and Welcome message
         updateWelcomeMessage(user.getUsername(), user.getRole());
@@ -790,6 +790,66 @@ private void handleDecline(Volunteer volunteer) {
     }
     
     
+    //============SEARCH=====================
+    //set up real time search listener
+    private void setupSearchListener(){
+        searchTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener(){
+        public void insertUpdate(javax.swing.event.DocumentEvent e){
+            performSearch();
+        }
+        public void removeUpdate(javax.swing.event.DocumentEvent e){
+            performSearch();
+        }
+        public void changedUpdate(javax.swing.event.DocumentEvent e){
+            performSearch();
+        }
+        });
+    }
+    
+    //perform searchb using Linear Search algorithm
+    private void performSearch(){
+        String searchTerm = searchTextField.getText().trim();
+        
+        if(searchTerm.isEmpty()){
+            //if seasrch is empty. show all volunteers
+            refreshApprovedVolunteerTable();
+            return;
+        }
+        
+        //use linear search to find matching volunteers
+        LinkedList<Volunteer> searchResults = volunteerCRUDController.searchVolunteers(searchTerm);
+        
+        //display results
+        displaySearchResults(searchResults);
+    }
+    
+    //display searchb results in the table
+    private void displaySearchResults(LinkedList<Volunteer> results){
+        DefaultTableModel model = (DefaultTableModel) volunteerTable.getModel();
+        model.setRowCount(0);
+        
+        if (results != null && !results.isEmpty()) {
+            for (Volunteer v : results) {
+                Object[] row = {
+                    v.getVolunteerId(),
+                    v.getFullName(),
+                    v.getContactNumber(),
+                    v.getEmail(),
+                    "Approved",
+                    v.getVolunteerId()
+                };
+                model.addRow(row);
+            }
+
+            // Optional: Show search result count
+            System.out.println("Displaying " + results.size() + " search result(s)");
+        } else {
+            // No results found
+            System.out.println("No volunteers found matching: " + searchTextField.getText());
+        }
+    }
+    
+    
     
     //==========EVENT TABLE SETUP===================
     private void setupEventsTable(){
@@ -1363,7 +1423,7 @@ private void handleDecline(Volunteer volunteer) {
     }//GEN-LAST:event_volunteerButtonActionPerformed
 
     private void searchTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchTextFieldActionPerformed
-        // TODO add your handling code here:
+        performSearch();
     }//GEN-LAST:event_searchTextFieldActionPerformed
 
     private void sortByComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sortByComboBoxActionPerformed
