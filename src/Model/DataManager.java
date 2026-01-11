@@ -203,7 +203,22 @@ public class DataManager {
         
     
     //==============QUEUE OPERATIONS (Manual Implementation)============
-    //check if the queue is empty
+ public static boolean enqueueFront(Volunteer volunteer) {
+    if (isQueueFull()) {
+        System.out.println("⚠ Queue is full - cannot add volunteer to front");
+        return false;
+    }
+    
+    // Move front pointer back (circular)
+    front = (front - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
+    pendingQueue[front] = volunteer;
+    queueSize++;
+    
+    System.out.println("✓ Added volunteer to FRONT of queue: " + volunteer.getFullName());
+    return true;
+}
+ 
+//check if the queue is empty
     public static boolean isQueueEmpty(){
         return queueSize == 0;
     }
@@ -272,6 +287,35 @@ public class DataManager {
         }
         return list;
     }
+    
+    //Remove volunteer from approved list and users (for UNDO accept)
+    public static boolean removeApprovedVolunteer(Volunteer volunteer) {
+    if (volunteer == null) {
+        return false;
+    }
+    
+    // Remove from approved volunteers
+    boolean removed = approvedVolunteers.remove(volunteer);
+    
+    if (removed) {
+        // Also remove from users list
+        User userToRemove = null;
+        for (User u : users) {
+            if (u.getUsername().equals(volunteer.getUsername())) {
+                userToRemove = u;
+                break;
+            }
+        }
+        if (userToRemove != null) {
+            users.remove(userToRemove);
+        }
+        
+        System.out.println("✓ Removed from approved: " + volunteer.getFullName());
+        return true;
+    }
+    
+    return false;
+}
     
     //=========USER OPERATIONS==================
     public static User getUser(String username){
@@ -653,6 +697,24 @@ public static boolean deleteEvent(String eventId) {
         return true;
     }
     return false;
+}
+
+
+//method for restoring volunteers
+public static boolean addApprovedVolunteerDirect(Volunteer volunteer) {
+    if (volunteer == null) {
+        return false;
+    }
+    approvedVolunteers.add(volunteer);
+    
+    // Also add to users if not exists
+    if (getUser(volunteer.getUsername()) == null) {
+        User user = new User(volunteer.getUsername(), volunteer.getPassword(), "user");
+        users.add(user);
+    }
+    
+    System.out.println("✓ Restored volunteer: " + volunteer.getFullName());
+    return true;
 }
 
     
