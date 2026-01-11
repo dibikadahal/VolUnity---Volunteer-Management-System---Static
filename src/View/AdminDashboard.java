@@ -882,9 +882,10 @@ private void handleDecline(Volunteer volunteer) {
         jEventTable.getColumnModel().getColumn(1).setPreferredWidth(200);  // Name
         jEventTable.getColumnModel().getColumn(2).setPreferredWidth(100);  // Start Date
         jEventTable.getColumnModel().getColumn(3).setPreferredWidth(100);  // Duration
-        jEventTable.getColumnModel().getColumn(4).setPreferredWidth(150);  // Location
-        jEventTable.getColumnModel().getColumn(5).setPreferredWidth(150);  // Organizer's name
-        jEventTable.getColumnModel().getColumn(6).setPreferredWidth(250);  // Options
+        jEventTable.getColumnModel().getColumn(4).setPreferredWidth(210);  // Location
+        jEventTable.getColumnModel().getColumn(5).setPreferredWidth(100); //status
+        jEventTable.getColumnModel().getColumn(6).setPreferredWidth(150);  // Organizer's name
+        jEventTable.getColumnModel().getColumn(7).setPreferredWidth(250);  // Options
         
         //add button renderers and editors for options column
         jEventTable.getColumn("Options").setCellRenderer(new EventButtonRenderer());
@@ -911,6 +912,7 @@ private void handleDecline(Volunteer volunteer) {
                 event.getStartDate(),
                 event.getDuration(),
                 event.getLocation(),
+                event.getEventStatus(),
                 event.getOrganizerName(),
                 event.getEventId() //pass event id to the buttons
             };
@@ -1104,6 +1106,7 @@ private void handleDecline(Volunteer volunteer) {
                 event.getStartDate(),
                 event.getDuration(),
                 event.getLocation(),
+                event.getEventStatus(),
                 event.getOrganizerName(),
                 event.getEventId() // Pass event ID to buttons
             };
@@ -1130,6 +1133,7 @@ private void handleDecline(Volunteer volunteer) {
                     event.getStartDate(),
                     event.getDuration(),
                     event.getLocation(),
+                    event.getEventStatus(),
                     event.getOrganizerName(),
                     event.getEventId() // Pass event ID to buttons
                 };
@@ -1183,6 +1187,7 @@ private void handleDecline(Volunteer volunteer) {
                     event.getStartDate(),
                     event.getDuration(),
                     event.getLocation(),
+                    event.getEventStatus(),
                     event.getOrganizerName(),
                     event.getEventId()
                 };
@@ -1515,13 +1520,13 @@ private void handleDecline(Volunteer volunteer) {
 
         jEventTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Event ID", "Name", "Start Date", "Duration", "Location", "Organizer's name", "Options"
+                "Event ID", "Name", "Start Date", "Duration", "Location", "Status", "Organizer's name", "Options"
             }
         ));
         jScrollPane2.setViewportView(jEventTable);
