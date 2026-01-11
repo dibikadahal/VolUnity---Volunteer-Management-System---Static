@@ -74,39 +74,41 @@ public class VolunteerCRUDController {
     /**
      * Delete approved volunteer
      */
-    public boolean deleteVolunteer(String volunteerId) {
-       System.out.println("DEBUG - Attempting to delete volunteer ID: " + volunteerId);
+   public boolean deleteVolunteer(String volunteerId) {
+   System.out.println("DEBUG - Attempting to delete volunteer ID: " + volunteerId);
 
-        Volunteer volunteer = DataManager.getApprovedVolunteerById(volunteerId);
+    Volunteer volunteer = DataManager.getApprovedVolunteerById(volunteerId);
 
-        if (volunteer == null) {
-            System.out.println("DEBUG - Cannot delete, volunteer not found!");
-
-            dashboard.showError("Volunteer not found!", "Error");
-            return false;
-        }
-
-        // Ask for confirmation
-        boolean confirmed = dashboard.confirmDelete(
-                "Are you sure you want to delete volunteer: " + volunteer.getFullName() + "?"
-        );
-
-        if (confirmed) {
-            boolean success = DataManager.deleteApprovedVolunteer(volunteerId);
-
-            if (success) {
-                dashboard.showSuccess("Volunteer deleted successfully!", "Success");
-                dashboard.refreshApprovedVolunteerTable();
-                dashboard.refreshDashboardStats();
-                return true;
-            } else {
-                dashboard.showError("Failed to delete volunteer!", "Error");
-                return false;
-            }
-        }
-
+    if (volunteer == null) {
+        System.out.println("DEBUG - Cannot delete, volunteer not found!");
+        dashboard.showError("Volunteer not found!", "Error");
         return false;
     }
+
+    // Ask for confirmation
+    boolean confirmed = dashboard.confirmDelete(
+            "Are you sure you want to delete volunteer: " + volunteer.getFullName() + "?"
+    );
+
+    if (confirmed) {
+        boolean success = DataManager.deleteApprovedVolunteer(volunteerId);
+
+        if (success) {
+            // ✅ ADD THIS LINE - Log the action
+            dashboard.getActionStackController().logVolunteerDeleted(volunteer);
+            
+            dashboard.showSuccess("Volunteer deleted successfully!", "Success");
+            dashboard.refreshApprovedVolunteerTable();
+            dashboard.refreshDashboardStats();
+            return true;
+        } else {
+            dashboard.showError("Failed to delete volunteer!", "Error");
+            return false;
+        }
+    }
+
+    return false;
+}
 
     //============CREATE - Add new volunteer=====================
     public boolean createVolunteer(String fullName, String dob, String gender, String contact, String email, String education,

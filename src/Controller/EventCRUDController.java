@@ -44,6 +44,8 @@ public class EventCRUDController {
         boolean success = DataManager.addEvent(event);
 
         if (success) {
+            dashboard.getActionStackController().logEventAdded(event);
+            
             dashboard.showSuccess("Event added successfully!", "Success");
             dashboard.refreshEventsTable();
             dashboard.refreshDashboardStats();
@@ -77,11 +79,11 @@ public class EventCRUDController {
             String organizerContact) {
 
         // Get existing event
-        Event existingEvent = DataManager.getEventById(eventId);
-        if (existingEvent == null) {
-            dashboard.showError("Event not found!", "Error");
-            return false;
-        }
+        Event oldEvent = DataManager.getEventById(eventId);
+        if (oldEvent == null) {
+        dashboard.showError("Event not found!", "Error");
+        return false;
+    }
 
         // Create updated event (duration is calculated automatically in Event class)
         Event updatedEvent = new Event(
@@ -101,6 +103,8 @@ public class EventCRUDController {
         boolean success = DataManager.updateEvent(eventId, updatedEvent);
 
         if (success) {
+            dashboard.getActionStackController().logEventUpdated(oldEvent, updatedEvent);
+      
             dashboard.showSuccess("Event updated successfully!", "Success");
             dashboard.refreshEventsTable();
             dashboard.refreshDashboardStats();
@@ -126,12 +130,13 @@ public class EventCRUDController {
                 "Are you sure you want to delete this event?\n\n"
                 + "Event: " + event.getEventName() + "\n"
                 + "Date: " + event.getStartDate() + "\n\n"
-                + "This action cannot be undone!"
         );
 
         if (confirmed) {
             boolean success = DataManager.deleteEvent(eventId);
             if (success) {
+                dashboard.getActionStackController().logEventDeleted(event);
+                
                 dashboard.showSuccess("Event deleted successfully!", "Success");
                 dashboard.refreshEventsTable();
                 dashboard.refreshDashboardStats();
