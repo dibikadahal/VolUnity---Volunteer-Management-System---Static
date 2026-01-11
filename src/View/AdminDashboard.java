@@ -30,6 +30,7 @@ import Controller.MergeSort;
 import Controller.SelectionSort;
 import Model.Event;
 import Controller.BinarySearch;
+import Controller.EventCRUDController;
 
 
 
@@ -57,6 +58,7 @@ public class AdminDashboard extends javax.swing.JFrame {
     private javax.swing.JLabel lblTotalEvents;
     private InsertionSort sortController;
     private BinarySearch binarySearchController;
+    private EventCRUDController eventCRUDController;
 
 
         
@@ -72,6 +74,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         volunteerCRUDController = new VolunteerCRUDController(this);
         sortController = new InsertionSort();
         binarySearchController = new BinarySearch();
+        eventCRUDController = new EventCRUDController(this);
         
         setupPendingVolunteerTable();
         setupApprovedVolunteerTable();
@@ -1024,40 +1027,40 @@ private void handleDecline(Volunteer volunteer) {
         
         //EVENT ACTION HANDLERS
         private void handleViewEvent(String eventId){
-            Event event = DataManager.getEventById(eventId);
-            if (event != null) {
-                EventDetailsDialog.showDialog(this, event);
-            } else {
-                JOptionPane.showMessageDialog(this, "Event not found!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            eventCRUDController.viewEvent(eventId);
         }
         
         private void handleUpdateEvent(String eventId) {
-            JOptionPane.showMessageDialog(this,
-                    "Update functionality for Event ID: " + eventId + " will be implemented soon",
-                    "Update Event", JOptionPane.INFORMATION_MESSAGE);
-            // TODO: Implement update dialog similar to EventAddDialog
+        Event event = DataManager.getEventById(eventId);
+        if (event == null) {
+            JOptionPane.showMessageDialog(this, "Event not found!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        // Show dialog in UPDATE mode
+        EventAddDialog dialog = EventAddDialog.showDialogForUpdate(this, event);
+
+        // Check if save was successful
+        if (dialog.isSaveSuccessful()) {
+            // Update event using controller
+            eventCRUDController.updateEvent(
+                    dialog.getEventId(),
+                    dialog.getEventName(),
+                    dialog.getEventDescription(),
+                    dialog.getEventStartDate(),
+                    dialog.getEventEndDate(),
+                    dialog.geEventtLocation(),
+                    dialog.getEventType(),
+                    dialog.getEventStatus(),
+                    dialog.getEventOrganizerName(),
+                    dialog.getEventOrganizerContact()
+            );
+        }
+    }
         
         private void handleDeleteEvent(String eventId) {
-            int confirm = JOptionPane.showConfirmDialog(this,
-                    "Are you sure you want to delete this event?",
-                    "Confirm Delete", JOptionPane.YES_NO_OPTION);
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                boolean success = DataManager.deleteEvent(eventId);
-                if(success){
-                // TODO: Implement delete logic in DataManager
-                JOptionPane.showMessageDialog(this, "Event deleted successfully!",
-                        "Success", JOptionPane.INFORMATION_MESSAGE);            
-                refreshEventsTable(); 
-                refreshDashboardStats();
-            }else{
-                    JOptionPane.showMessageDialog(this, "Failed to delete event!",
-                            "Error", JOptionPane.ERROR_MESSAGE);  
-                }
-    }
- }
+    eventCRUDController.deleteEvent(eventId);
+}
         
         
       //==============EVENT SORT====================
@@ -1166,6 +1169,40 @@ private void handleDecline(Volunteer volunteer) {
         } else {
             System.out.println("No events found matching: " + eventsSearchBox.getText());
         }
+    }
+    
+    //show event details using JOpionPane
+    public void showEventDetails(Event event){
+        String details = String.format(
+        "<html><body style='width: 400px; padding: 10px;'>" +
+        "<h2 style='color: #5B9EA5;'>Event Details</h2>" +
+        "<hr>" +
+        "<p><b>Event ID:</b> %s</p>" +
+        "<p><b>Event Name:</b> %s</p>" +
+        "<p><b>Description:</b> %s</p>" +
+        "<p><b>Start Date:</b> %s</p>" +
+        "<p><b>End Date:</b> %s</p>" +
+        "<p><b>Duration:</b> %s</p>" +
+        "<p><b>Location:</b> %s</p>" +
+        "<p><b>Event Type:</b> %s</p>" +
+        "<p><b>Status:</b> %s</p>" +
+        "<p><b>Organizer:</b> %s</p>" +
+        "<p><b>Contact:</b> %s</p>" +
+        "</body></html>",
+        event.getEventId(),
+        event.getEventName(),
+        event.getDescription(),
+        event.getStartDate(),
+        event.getEndDate(),
+        event.getDuration(),
+        event.getLocation(),
+        event.getEventType(),
+        event.getEventStatus(),
+        event.getOrganizerName(),
+        event.getOrganizerContact()
+        );
+        
+        JOptionPane.showMessageDialog(this, details, "Event Details", JOptionPane.INFORMATION_MESSAGE);
     }
    
 
@@ -1576,8 +1613,26 @@ private void handleDecline(Volunteer volunteer) {
 
     private void addEventsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addEventsButtonActionPerformed
         EventAddDialog.showDialog(this);
-        refreshEventsTable();
-        refreshDashboardStats();
+
+        // Check if we need to reload
+        // Since dialog handles its own validation, we just refresh after it closes
+        EventAddDialog dialog = new EventAddDialog(this);
+        dialog.setVisible(true);
+
+        if (dialog.isSaveSuccessful()) {
+            // Create event using controller
+            eventCRUDController.createEvent(
+                    dialog.getEventName(),
+                    dialog.getEventDescription(),
+                    dialog.getEventStartDate(),
+                    dialog.getEventEndDate(),
+                    dialog.geEventtLocation(),
+                    dialog.getEventType(),
+                    dialog.getEventStatus(),
+                    dialog.getEventOrganizerName(),
+                    dialog.getEventOrganizerContact()
+            );
+        }
     }//GEN-LAST:event_addEventsButtonActionPerformed
 
     private void eventButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eventButtonActionPerformed
